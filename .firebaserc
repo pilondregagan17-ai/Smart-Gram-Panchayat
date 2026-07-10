@@ -1,0 +1,13 @@
+{
+  "projects": {},
+  "targets": {
+    "gram-panchayat-project-1b1ac": {
+      "hosting": {
+        "borujwada": [
+          "borujwada-complaint-portal"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
