@@ -134,18 +134,7 @@
                     <textarea id="descriptionInput" class="input-control" data-i18n-placeholder="placeholder_desc" required></textarea>
                 </div>
                 
-                <!-- File Upload -->
-                <div class="form-group">
-                    <label data-i18n="label_photo">फोटो अपलोड करें (यदि कोई हो)</label>
-                    <div class="file-upload-wrapper">
-                        <input type="file" id="photoInput" class="file-upload-input" accept="image/*">
-                        <div class="file-upload-text">
-                            <i data-lucide="upload-cloud" style="width: 32px; height: 32px; color: var(--primary);"></i>
-                            <span data-i18n="photo_upload_hint">फ़ाइल चुनने के लिए यहाँ क्लिक करें या ड्रैग करें (Max 2MB)</span>
-                        </div>
-                        <img id="photoPreview" class="file-upload-preview" alt="Upload Preview">
-                    </div>
-                </div>
+
                 
                 <!-- Submit -->
                 <button type="submit" class="btn btn-primary btn-full" style="margin-top: 1.5rem;">
@@ -277,11 +266,7 @@
                     <p id="receiptDescription" style="margin: 0; font-size: 0.95rem; color: #1e293b; line-height: 1.6; font-family: 'Mukta', sans-serif; white-space: pre-wrap; word-wrap: break-word;"></p>
                 </div>
 
-                <!-- Optional Photo Section -->
-                <div id="receiptPhotoBlock" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 20px; display: none; text-align: center;">
-                    <span style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 10px; font-family: 'Mukta', sans-serif; text-align: left;">शिकायत फोटो (Complaint Photo)</span>
-                    <img id="receiptPhoto" src="" alt="Complaint Photo" style="max-height: 150px; max-width: 100%; object-fit: contain; border-radius: 6px; border: 1px solid #cbd5e1; padding: 4px; background: white;">
-                </div>
+
 
                 <!-- Footer Grid -->
                 <div style="display: grid; grid-template-columns: 1fr auto; align-items: flex-end; border-top: 2px solid #e2e8f0; padding-top: 15px; margin-top: 30px;">

@@ -433,11 +433,7 @@ function renderComplaintsTable() {
         const pClass = c.priority === 'Emergency' ? 'danger' : c.priority === 'High' ? 'warning' : 'primary';
         const priorityBadge = `<span class="badge badge-${pClass}">${c.priority || 'Normal'}</span>`;
 
-        // Attachment link/thumbnail if photo exists
-        let photoMarkup = "";
-        if (c.photo) {
-            photoMarkup = `<div style="margin-top:5px;"><a href="#" onclick="openPhotoLightbox('${c.photo}')" style="display:inline-flex; align-items:center; gap:0.25rem; font-size:0.75rem; color:var(--primary); font-weight:600;"><i data-lucide="image" style="width:12px;height:12px;"></i> View Photo</a></div>`;
-        }
+
 
         // Map Location Column
         let mapMarkup = `<span style="color:var(--text-light); font-size:0.8rem;">None</span>`;
@@ -470,7 +466,6 @@ function renderComplaintsTable() {
             <td>${dict[c.category] || c.category}</td>
             <td>
                 <div style="max-width: 250px; font-size:0.85rem; line-height:1.4; color:var(--text-secondary); word-wrap: break-word;">${c.description}</div>
-                ${photoMarkup}
             </td>
             <td>${mapMarkup}</td>
             <td>${statusSelect}</td>
@@ -1207,22 +1202,7 @@ function uploadAdminProfilePic(input) {
     reader.readAsDataURL(file);
 }
 
-// ------------------------------------------------------------------------
-// PHOTO ATTACHMENT LIGHTBOX
-// ------------------------------------------------------------------------
-function openPhotoLightbox(photoUrl) {
-    const modal = document.getElementById("photoLightboxModal");
-    const img = document.getElementById("lightboxImage");
-    if (modal && img) {
-        img.src = photoUrl;
-        modal.style.display = "flex";
-    }
-}
 
-function closePhotoLightbox() {
-    const modal = document.getElementById("photoLightboxModal");
-    if (modal) modal.style.display = "none";
-}
 
 // Explicit global bindings for inline HTML onclick triggers
 window.switchTab = switchTab;
@@ -1230,8 +1210,6 @@ window.exportData = exportData;
 window.openRemarksModal = openRemarksModal;
 window.closeRemarksModal = closeRemarksModal;
 window.submitRemarksModalAction = submitRemarksModalAction;
-window.openPhotoLightbox = openPhotoLightbox;
-window.closePhotoLightbox = closePhotoLightbox;
 window.uploadAdminProfilePic = uploadAdminProfilePic;
 window.backupPanchayatData = backupPanchayatData;
 window.importPanchayatData = importPanchayatData;

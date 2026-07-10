@@ -5,7 +5,6 @@ const firebaseConfig = {
     apiKey: "AIzaSyD2ndIsVtTTb5UMrmee5PT4wlYbELfdNTs",
     authDomain: "gram-panchayat-project-1b1ac.firebaseapp.com",
     projectId: "gram-panchayat-project-1b1ac",
-    storageBucket: "gram-panchayat-project-1b1ac.firebasestorage.app",
     messagingSenderId: "711673176568",
     appId: "1:711673176568:web:8a932d67e30988b1e5f60d"
 };
@@ -346,27 +345,7 @@ const dbLayer = {
         }
     },
 
-    // ------------------------------------------------------------------------
-    // FIREBASE STORAGE IMAGE UPLOADS (NEW)
-    // ------------------------------------------------------------------------
-    uploadComplaintPhoto: async (trackingId, dataUrl) => {
-        if (!dataUrl) return "";
-        if (useMockMode) {
-            // Keep Base64 string locally in mock mode
-            return dataUrl;
-        } else {
-            try {
-                // Upload Base64 to Firebase Storage
-                const storageRef = firebase.storage().ref().child(`complaints/${trackingId}.jpg`);
-                const snapshot = await storageRef.putString(dataUrl, 'data_url');
-                const downloadUrl = await snapshot.ref.getDownloadURL();
-                return downloadUrl;
-            } catch (error) {
-                console.error("Storage upload error, using local base64 fallback:", error);
-                return dataUrl;
-            }
-        }
-    },
+
 
     // ------------------------------------------------------------------------
     // LIVE SMS DISPATCH GATEWAY (NEW)

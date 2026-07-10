@@ -1,8 +1,6 @@
 // Complaint Registration Script
 document.addEventListener("DOMContentLoaded", () => {
     const complaintForm = document.getElementById("complaintForm");
-    const photoInput = document.getElementById("photoInput");
-    const photoPreview = document.getElementById("photoPreview");
     const successCard = document.getElementById("successCard");
     const formCard = document.getElementById("formCard");
     const trackingIdDisplay = document.getElementById("trackingIdDisplay");
@@ -14,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const lngInput = document.getElementById("lngInput");
     const downloadReceiptBtn = document.getElementById("downloadReceiptBtn");
     
-    let photoBase64 = "";
+
 
     // 1. Geolocation Locator
     if (getLocationBtn) {
@@ -50,67 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // File Upload Handler (Converts and compresses image)
-    if (photoInput) {
-        photoInput.addEventListener("change", (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
 
-            if (file.size > 5 * 1024 * 1024) {
-                const currentLang = localStorage.getItem('gp_lang') || 'hi';
-                alert(currentLang === 'en' ? "File size exceeds 5MB limit." : "फ़ाइल का आकार 5MB से अधिक है।");
-                photoInput.value = "";
-                photoPreview.style.display = "none";
-                return;
-            }
-
-            const previewText = document.querySelector(".file-upload-text span");
-            const originalText = previewText ? previewText.textContent : "";
-            if (previewText) {
-                const currentLang = localStorage.getItem('gp_lang') || 'hi';
-                previewText.textContent = currentLang === 'en' ? "Compressing Image..." : "फ़ोटो कंप्रेस की जा रही है...";
-            }
-
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (event) => {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const maxDimension = 800;
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > height) {
-                        if (width > maxDimension) {
-                            height = Math.round((height * maxDimension) / width);
-                            width = maxDimension;
-                        }
-                    } else {
-                        if (height > maxDimension) {
-                            width = Math.round((width * maxDimension) / height);
-                            height = maxDimension;
-                        }
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    photoBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                    photoPreview.src = photoBase64;
-                    photoPreview.style.display = "block";
-
-                    if (previewText) previewText.textContent = originalText;
-                };
-            };
-            reader.onerror = () => {
-                alert("Failed to read file.");
-            };
-        });
-    }
 
     // Form Submission
     if (complaintForm) {
@@ -145,11 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const trackingId = `GP-COMP-${randomId}`;
             
             try {
-                // Upload Photo to Firebase Storage or get local base64 fallback
-                let photoUrl = "";
-                if (photoBase64) {
-                    photoUrl = await dbLayer.uploadComplaintPhoto(trackingId, photoBase64);
-                }
+
 
                 const complaint = {
                     trackingId,
@@ -159,7 +93,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     priority,
                     latitude,
                     longitude,
-                    photo: photoUrl,
                     status: "Pending",
                     createdAt: new Date().toISOString()
                 };
@@ -187,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 // Prepare high-fidelity official HTML receipt in background
                 const categorySelect = document.getElementById("categorySelect");
                 const categoryText = categorySelect.options[categorySelect.selectedIndex].text;
-                prepareReceiptTemplate(trackingId, name, mobile, categoryText, priority, description, latitude, longitude, photoBase64);
+                prepareReceiptTemplate(trackingId, name, mobile, categoryText, priority, description, latitude, longitude);
                 
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } catch (error) {
@@ -280,7 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-function prepareReceiptTemplate(trackingId, name, mobile, category, priority, description, lat, lng, photoData) {
+function prepareReceiptTemplate(trackingId, name, mobile, category, priority, description, lat, lng) {
     document.getElementById("receiptTrackingId").textContent = trackingId;
     document.getElementById("receiptCitizenName").textContent = name;
     document.getElementById("receiptMobile").textContent = "+91 " + mobile;
@@ -321,15 +254,7 @@ function prepareReceiptTemplate(trackingId, name, mobile, category, priority, de
     // Description
     document.getElementById("receiptDescription").textContent = description;
 
-    // Optional Photo
-    const photoBlock = document.getElementById("receiptPhotoBlock");
-    const photoImg = document.getElementById("receiptPhoto");
-    if (photoData) {
-        photoImg.src = photoData;
-        photoBlock.style.display = "block";
-    } else {
-        photoBlock.style.display = "none";
-    }
+
 
     // Generate QR Code containing the tracking URL for receipt (PDF & Print)
     const qrContainer = document.getElementById("receiptQrCode");

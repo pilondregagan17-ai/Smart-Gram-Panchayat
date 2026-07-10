@@ -18,8 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const resDate = document.getElementById("resDate");
     const resStatus = document.getElementById("resStatus");
     const resDescription = document.getElementById("resDescription");
-    const resPhotoWrapper = document.getElementById("resPhotoWrapper");
-    const resPhoto = document.getElementById("resPhoto");
+
     
     // Extended rows
     const resPriorityRow = document.getElementById("resPriorityRow");
@@ -89,7 +88,6 @@ document.addEventListener("DOMContentLoaded", () => {
             // Reset views
             trackingResult.style.display = "none";
             errorAlert.style.display = "none";
-            resPhotoWrapper.style.display = "none";
             resLocationRow.style.display = "none";
             resSecretaryNotesRow.style.display = "none";
             
@@ -174,10 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
         stepLabel3.textContent = "पूर्ण (Completed)";
         updateStepper(complaint.status);
         
-        if (complaint.photo) {
-            resPhoto.src = complaint.photo;
-            resPhotoWrapper.style.display = "block";
-        }
+
         
         trackingResult.style.display = "block";
         trackingResult.scrollIntoView({ behavior: 'smooth', block: 'start' });

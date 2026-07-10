@@ -1,60 +1,8 @@
 rules_version = '2';
-
 service firebase.storage {
-
   match /b/{bucket}/o {
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isAdmin() {
-      return isSignedIn() &&
-      request.auth.token.email.matches(".*@panchayat\\.gov\\.in$");
-    }
-
-    // ==========================
-    // Complaint Images
-    // ==========================
-
-    match /complaints/{allPaths=**} {
-
-      // Anyone can view complaint image
-      allow read: if true;
-
-      // Anyone can upload image
-      // Only Image
-      // Max 5MB
-
-      allow write: if
-        request.resource != null &&
-        request.resource.contentType.matches('image/.*') &&
-        request.resource.size < 5 * 1024 * 1024;
-
-    }
-
-    // ==========================
-    // Notice Images
-    // ==========================
-
-    match /notices/{allPaths=**} {
-
-      allow read: if true;
-
-      allow write: if isAdmin();
-
-    }
-
-    // ==========================
-    // Everything Else
-    // ==========================
-
     match /{allPaths=**} {
-
       allow read, write: if false;
-
     }
-
   }
-
 }
