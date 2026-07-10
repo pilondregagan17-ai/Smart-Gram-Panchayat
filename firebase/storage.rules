@@ -1,25 +1,60 @@
 rules_version = '2';
+
 service firebase.storage {
+
   match /b/{bucket}/o {
-    // Helper to check if user has admin email extension
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
     function isAdmin() {
-      return request.auth != null && request.auth.token.email.endsWith('@panchayat.gov.in');
+      return isSignedIn() &&
+      request.auth.token.email.matches(".*@panchayat\\.gov\\.in$");
     }
 
-    // Complaints attachments folder rules
+    // ==========================
+    // Complaint Images
+    // ==========================
+
     match /complaints/{allPaths=**} {
-      allow read, write: if true; // Public can upload/view attachments
-    }
 
-    // Notices image attachment rules
-    match /notices/{allPaths=**} {
+      // Anyone can view complaint image
       allow read: if true;
-      allow write: if isAdmin();
+
+      // Anyone can upload image
+      // Only Image
+      // Max 5MB
+
+      allow write: if
+        request.resource != null &&
+        request.resource.contentType.matches('image/.*') &&
+        request.resource.size < 5 * 1024 * 1024;
+
     }
 
-    // Default catch-all
-    match /{allPaths=**} {
-      allow read, write: if isAdmin();
+    // ==========================
+    // Notice Images
+    // ==========================
+
+    match /notices/{allPaths=**} {
+
+      allow read: if true;
+
+      allow write: if isAdmin();
+
     }
+
+    // ==========================
+    // Everything Else
+    // ==========================
+
+    match /{allPaths=**} {
+
+      allow read, write: if false;
+
+    }
+
   }
+
 }
