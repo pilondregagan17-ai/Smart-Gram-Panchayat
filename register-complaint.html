@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="reg_title">नई शिकायत दर्ज करें - स्मार्ट ग्राम पंचायत</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    
+    <!-- Unicode Fonts (Hindi & English Subtitles Support) -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&family=Poppins:wght@400;500;600;700&family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Unified CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
+    
+    <!-- html2pdf.js and qrcode.js CDNs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <!-- Firebase SDK (Compatibility Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <!-- jsPDF CDN for printable receipts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+    <!-- Loading Screen Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div style="background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(10px); padding: 2.5rem 3.5rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15); text-align: center; box-shadow: var(--shadow-lg);">
+            <img src="images/logo.png" alt="Panchayat Logo" style="height: 70px; margin-bottom: 1.5rem; animation: pulse 2s infinite ease-in-out;">
+            <div style="width: 32px; height: 32px; border: 4px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s infinite linear; margin: 0 auto;"></div>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <header>
+        <div class="nav-container">
+            <div class="logo-section">
+                <a href="index.html">
+                    <img src="images/logo.png" class="site-logo" alt="Logo">
+                    <div class="logo-text">
+                        <h1 data-i18n="app_title">स्मार्ट ग्राम पंचायत</h1>
+                        <p data-i18n="app_subtitle">शिकायत एवं सेवा पोर्टल</p>
+                    </div>
+                </a>
+            </div>
+            <div class="nav-controls">
+                <div class="lang-selector-wrapper">
+                    <select class="lang-select">
+                        <option value="hi">हिन्दी</option>
+                        <option value="en">English</option>
+                        <option value="mr">मराठी</option>
+                    </select>
+                </div>
+                <button class="btn-icon" id="themeToggleBtn" title="Toggle Theme">
+                    <i id="themeToggleIcon" data-lucide="moon"></i>
+                </button>
+                <a href="settings.html" class="btn-icon" title="Settings">
+                    <i data-lucide="settings"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        
+        <!-- Form Container Card -->
+        <div class="card form-card" id="formCard">
+            <div class="form-title-group">
+                <h2 data-i18n="reg_title">नई शिकायत दर्ज करें</h2>
+                <p data-i18n="reg_desc">कृपया नीचे दिए गए फॉर्म में सही जानकारी भरें। आपकी शिकायत दर्ज होने के बाद एक ट्रैकिंग आईडी जेनरेट होगी।</p>
+            </div>
+            
+            <form id="complaintForm">
+                
+                <!-- Name -->
+                <div class="form-group">
+                    <label for="nameInput" data-i18n="label_name">पूरा नाम</label>
+                    <input type="text" id="nameInput" class="input-control" data-i18n-placeholder="placeholder_name" required>
+                </div>
+                
+                <!-- Mobile -->
+                <div class="form-group">
+                    <label for="nameInput" data-i18n="label_mobile">मोबाइल नंबर</label>
+                    <input type="tel" id="mobileInput" class="input-control" data-i18n-placeholder="placeholder_mobile" pattern="[0-9]{10}" required>
+                </div>
+                
+                <!-- Category -->
+                <div class="form-group">
+                    <label for="categorySelect" data-i18n="label_category">शिकायत की श्रेणी</label>
+                    <select id="categorySelect" class="input-control" required>
+                        <option value="" disabled selected data-i18n="select_category">श्रेणी चुनें</option>
+                        <option value="cat_water" data-i18n="cat_water">पानी की समस्या</option>
+                        <option value="cat_road" data-i18n="cat_road">सड़क की खराबी</option>
+                        <option value="cat_light" data-i18n="cat_light">स्ट्रीट लाइट</option>
+                        <option value="cat_garbage" data-i18n="cat_garbage">कचरा समस्या</option>
+                        <option value="cat_drainage" data-i18n="cat_drainage">जलनिकास (गटर) समस्या</option>
+                    </select>
+                </div>
+                
+                <!-- Priority selection -->
+                <div class="form-group">
+                    <label for="prioritySelect">शिकायत की प्राथमिकता (Complaint Priority)</label>
+                    <select id="prioritySelect" class="input-control" required>
+                        <option value="Normal">सामान्य (Normal)</option>
+                        <option value="High">उच्च (High)</option>
+                        <option value="Emergency">आपातकालीन (Emergency)</option>
+                    </select>
+                </div>
+
+                <!-- Geolocation coordinates -->
+                <div class="form-group">
+                    <label>भौगोलिक स्थिति (GPS Location)</label>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button type="button" id="getLocationBtn" class="btn btn-outline btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem; min-height: 42px;">
+                            <i data-lucide="map-pin"></i>
+                            <span>स्थान प्राप्त करें (Get Location)</span>
+                        </button>
+                        <input type="text" id="latInput" class="input-control" style="flex: 1; min-width: 100px;" placeholder="Latitude" readonly>
+                        <input type="text" id="lngInput" class="input-control" style="flex: 1; min-width: 100px;" placeholder="Longitude" readonly>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="form-group">
+                    <label for="descriptionInput" data-i18n="label_desc">शिकायत का विवरण</label>
+                    <textarea id="descriptionInput" class="input-control" data-i18n-placeholder="placeholder_desc" required></textarea>
+                </div>
+                
+                <!-- File Upload -->
+                <div class="form-group">
+                    <label data-i18n="label_photo">फोटो अपलोड करें (यदि कोई हो)</label>
+                    <div class="file-upload-wrapper">
+                        <input type="file" id="photoInput" class="file-upload-input" accept="image/*">
+                        <div class="file-upload-text">
+                            <i data-lucide="upload-cloud" style="width: 32px; height: 32px; color: var(--primary);"></i>
+                            <span data-i18n="photo_upload_hint">फ़ाइल चुनने के लिए यहाँ क्लिक करें या ड्रैग करें (Max 2MB)</span>
+                        </div>
+                        <img id="photoPreview" class="file-upload-preview" alt="Upload Preview">
+                    </div>
+                </div>
+                
+                <!-- Submit -->
+                <button type="submit" class="btn btn-primary btn-full" style="margin-top: 1.5rem;">
+                    <i data-lucide="send"></i>
+                    <span data-i18n="btn_submit_complaint">शिकायत सबमिट करें</span>
+                </button>
+            </form>
+        </div>
+        
+        <!-- Success Card (Initially Hidden) -->
+        <div class="card form-card" id="successCard" style="display: none; text-align: center; padding: 3rem 2rem;">
+            <div style="width: 72px; height: 72px; background-color: var(--success-light); color: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto;">
+                <i data-lucide="check-circle" style="width: 40px; height: 40px;"></i>
+            </div>
+            
+            <h2 data-i18n="reg_success_title" style="margin-bottom: 0.75rem;">शिकायत सफलतापूर्वक दर्ज की गई!</h2>
+            <p data-i18n="reg_success_desc" style="color: var(--text-secondary); margin-bottom: 1.5rem;">आपकी शिकायत दर्ज कर ली गई है। कृपया भविष्य के लिए अपना ट्रैकिंग आईडी नोट कर लें:</p>
+            
+            <div style="background-color: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1.5rem;">
+                <span id="trackingIdDisplay" style="font-size: 1.5rem; font-weight: 700; font-family: monospace; color: var(--primary); letter-spacing: 1px;">GP-COMP-XXXXXX</span>
+                <button class="btn btn-outline btn-sm" id="copyBtn" style="padding: 0.5rem 1rem;">
+                    <i data-lucide="copy" style="width:16px;height:16px;"></i>
+                    <span data-i18n="btn_copy">कॉपी करें</span>
+                </button>
+            </div>
+            
+            <!-- Dynamic Success QR Code Block -->
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 2rem;">
+                <div id="successQrCode" style="padding: 6px; border: 1px solid var(--border); background: white; border-radius: 8px; display: inline-block; width: 120px; height: 120px; box-sizing: content-box; box-shadow: var(--shadow);"></div>
+                <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-top: 8px; font-family: 'Poppins', sans-serif;">Scan to Track Complaint</span>
+                <!-- QR Verification Message -->
+                <div style="margin-top: 0.75rem; text-align: center; max-width: 320px; line-height: 1.4; border-top: 1px dashed var(--border); padding-top: 0.5rem;">
+                    <strong style="font-size: 0.75rem; color: var(--success); display: block;">✓ Verified Digital Complaint Receipt</strong>
+                    <span style="font-size: 0.7rem; color: var(--text-light); display: block;">Generated by Smart Gram Panchayat Complaint Management System</span>
+                    <span style="font-size: 0.7rem; color: var(--text-secondary); display: block; margin-top: 2px;">This QR Code can be scanned to instantly check the latest complaint status.</span>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem;">
+                <button type="button" id="downloadReceiptBtn" class="btn btn-accent" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="download"></i>
+                    <span>पीडीएफ डाउनलोड (Download PDF)</span>
+                </button>
+                <button type="button" id="printReceiptBtn" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="printer"></i>
+                    <span>रसीद प्रिंट (Print Receipt)</span>
+                </button>
+                <a id="trackComplaintDirectBtn" href="track-complaint.html" class="btn btn-accent" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="eye"></i>
+                    <span>शिकायत ट्रैक करें (Track Complaint)</span>
+                </a>
+                <a href="index.html" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="home"></i>
+                    <span data-i18n="btn_go_home">मुख्य पृष्ठ पर जाएं</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Hidden Official PDF Receipt Template Container -->
+        <div style="position: absolute; left: -9999px; top: -9999px;">
+            <div id="complaintReceiptTemplate" style="width: 790px; padding: 45px; background: #ffffff; color: #1e293b; font-family: 'Mukta', 'Noto Sans Devanagari', 'Poppins', sans-serif; box-sizing: border-box; border: 8px double #1e40af; border-radius: 4px; line-height: 1.5; position: relative;">
+                
+                <!-- Header Grid -->
+                <div style="display: grid; grid-template-columns: 100px 1fr 120px; align-items: center; border-bottom: 3px double #1e40af; padding-bottom: 15px; margin-bottom: 20px;">
+                    <div>
+                        <img src="images/logo.png" alt="GP Logo" style="height: 75px; width: auto; object-fit: contain;">
+                    </div>
+                    <div style="text-align: center;">
+                        <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: #1e40af; font-family: 'Mukta', sans-serif;">कार्यालय ग्राम पंचायत बोरुजवाडा</h1>
+                        <h2 style="margin: 3px 0 0 0; font-size: 1.1rem; font-weight: 600; color: #64748b; text-transform: uppercase; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">OFFICE OF THE GRAM PANCHAYAT BORUJWADA</h2>
+                        <h3 style="margin: 8px 0 0 0; font-size: 1rem; font-weight: 700; color: #f97316; font-family: 'Mukta', sans-serif;">शिकायत पावती (Complaint Acknowledgement)</h3>
+                    </div>
+                    <div style="text-align: right; font-size: 0.85rem; font-weight: 700; color: #1e40af; line-height: 1.3; font-family: 'Mukta', sans-serif;">
+                        महाराष्ट्र शासन<br>
+                        <span style="font-size:0.7rem; font-family:'Poppins',sans-serif; color:#64748b; font-weight:500;">Govt. of Maharashtra</span>
+                    </div>
+                </div>
+
+                <!-- Tracking ID Box -->
+                <div style="background-color: rgba(30, 64, 175, 0.06); border: 2px dashed #1e40af; border-radius: 8px; padding: 12px; text-align: center; margin-bottom: 20px;">
+                    <span style="font-size: 0.85rem; text-transform: uppercase; font-weight: 600; color: #64748b; display: block; margin-bottom: 4px; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">Complaint Tracking ID / शिकायत संख्या</span>
+                    <strong id="receiptTrackingId" style="font-size: 1.6rem; font-weight: 700; font-family: monospace; color: #1e40af; letter-spacing: 1px;">GP-COMP-XXXXXX</strong>
+                </div>
+
+                <!-- Details Grid -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                    <!-- Left Column Details -->
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px;">
+                        <div style="margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
+                            <span style="font-size: 0.8rem; color: #64748b; display: block; font-family: 'Poppins', sans-serif;">Citizen Name / नागरिक का नाम</span>
+                            <strong id="receiptCitizenName" style="font-size: 0.95rem; color: #0f172a; font-family: 'Mukta', sans-serif;">-</strong>
+                        </div>
+                        <div style="margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
+                            <span style="font-size: 0.8rem; color: #64748b; display: block; font-family: 'Poppins', sans-serif;">Mobile Number / मोबाइल नंबर</span>
+                            <strong id="receiptMobile" style="font-size: 0.95rem; color: #0f172a; font-family: 'Poppins', sans-serif;">-</strong>
+                        </div>
+                        <div style="margin-bottom: 0;">
+                            <span style="font-size: 0.8rem; color: #64748b; display: block; font-family: 'Poppins', sans-serif;">GPS Location / जीपीएस स्थान</span>
+                            <strong id="receiptGps" style="font-size: 0.9rem; color: #0f172a; font-family: 'Poppins', sans-serif;">-</strong>
+                        </div>
+                    </div>
+
+                    <!-- Right Column Details -->
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px;">
+                        <div style="margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
+                            <span style="font-size: 0.8rem; color: #64748b; display: block; font-family: 'Poppins', sans-serif;">Complaint Category / शिकायत की श्रेणी</span>
+                            <strong id="receiptCategory" style="font-size: 0.95rem; color: #0f172a; font-family: 'Mukta', sans-serif;">-</strong>
+                        </div>
+                        <div style="margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <span style="font-size: 0.8rem; color: #64748b; display: block; font-family: 'Poppins', sans-serif;">Priority / प्राथमिकता</span>
+                                <strong id="receiptPriority" style="font-size: 0.95rem; color: #0f172a; font-family: 'Poppins', sans-serif;">-</strong>
+                            </div>
+                            <div>
+                                <span style="font-size: 0.8rem; color: #64748b; display: block; font-family: 'Poppins', sans-serif; text-align:right;">Status / स्थिति</span>
+                                <span id="receiptStatus" class="badge badge-pending" style="display:inline-block; font-size:0.75rem; margin-top:2px;">PENDING</span>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 0;">
+                            <span style="font-size: 0.8rem; color: #64748b; display: block; font-family: 'Poppins', sans-serif;">Date & Time / दिनांक</span>
+                            <strong id="receiptDate" style="font-size: 0.9rem; color: #0f172a; font-family: 'Poppins', sans-serif;">-</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description Box -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 10px; font-family: 'Mukta', sans-serif;">शिकायत का विवरण (Complaint Description)</span>
+                    <p id="receiptDescription" style="margin: 0; font-size: 0.95rem; color: #1e293b; line-height: 1.6; font-family: 'Mukta', sans-serif; white-space: pre-wrap; word-wrap: break-word;"></p>
+                </div>
+
+                <!-- Optional Photo Section -->
+                <div id="receiptPhotoBlock" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 20px; display: none; text-align: center;">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 10px; font-family: 'Mukta', sans-serif; text-align: left;">शिकायत फोटो (Complaint Photo)</span>
+                    <img id="receiptPhoto" src="" alt="Complaint Photo" style="max-height: 150px; max-width: 100%; object-fit: contain; border-radius: 6px; border: 1px solid #cbd5e1; padding: 4px; background: white;">
+                </div>
+
+                <!-- Footer Grid -->
+                <div style="display: grid; grid-template-columns: 1fr auto; align-items: flex-end; border-top: 2px solid #e2e8f0; padding-top: 15px; margin-top: 30px;">
+                    <!-- Address details -->
+                    <div style="font-size: 0.8rem; color: #64748b; line-height: 1.6; font-family: 'Mukta', sans-serif;">
+                        <strong style="color: #475569; display:block; margin-bottom:2px;">ग्राम पंचायत बोरुजवाडा कार्यालय (GP Borujwada Office)</strong>
+                        पता: बोरुजवाडा, छिंदवाड़ा, मध्य प्रदेश | Address: Borujwada, Chhindwara, MP<br>
+                        दूरभाष / Phone: +91 9876543210 | ईमेल / Email: info@borujwada.gp.gov.in<br>
+                        वेबसाइट / Website: www.borujwadagp.gov.in
+                    </div>
+                    <!-- QR Code container (120x120 pixels) -->
+                    <div style="text-align: right; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;">
+                        <div id="receiptQrCode" style="padding: 6px; border: 1px solid #cbd5e1; background: white; border-radius: 6px; display: inline-block; width: 120px; height: 120px; box-sizing: content-box;"></div>
+                        <span style="font-size: 0.7rem; font-weight: 600; color: #64748b; margin-top: 6px; font-family: 'Poppins', sans-serif; display:block; width: 132px; text-align:center;">Scan to Track Complaint</span>
+                        
+                        <!-- QR Verification Message -->
+                        <div style="margin-top: 8px; text-align: center; width: 150px; line-height: 1.3; border-top: 1px dashed #cbd5e1; padding-top: 6px; box-sizing: border-box;">
+                            <strong style="font-size: 0.6rem; color: #10b981; display: block; font-family: 'Poppins', sans-serif; text-transform: uppercase;">✓ Verified Receipt</strong>
+                            <span style="font-size: 0.5rem; color: #94a3b8; display: block; font-family: 'Poppins', sans-serif; line-height: 1.1; margin-top: 2px;">Generated by Smart Gram Panchayat Complaint Management System</span>
+                            <span style="font-size: 0.5rem; color: #64748b; display: block; font-family: 'Poppins', sans-serif; line-height: 1.1; margin-top: 3px;">Scan to check live status</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- validation disclaimer -->
+                <div style="text-align: center; margin-top: 25px; border-top: 1px dashed #cbd5e1; padding-top: 10px; font-size: 0.75rem; color: #94a3b8; font-family: 'Mukta', sans-serif;">
+                    यह स्मार्ट ग्राम पंचायत शिकायत निवारण प्रणाली द्वारा स्वतः जनरेट की गई पावती है। इस पर किसी हस्ताक्षर की आवश्यकता नहीं है।<br>
+                    <span style="font-family:'Poppins',sans-serif; font-size: 0.7rem;">This is a computer-generated receipt and does not require a signature.</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+            <a href="index.html" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                <img src="images/logo.png" alt="GP Logo" style="height: 24px; width: auto; object-fit: contain;">
+            </a>
+            <p>&copy; 2026 <span data-i18n="app_title">स्मार्ट ग्राम पंचायत</span>. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- App Scripts -->
+    <script src="js/translations.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/register.js"></script>
+    <script>
+        // Dismiss loading screen
+        window.addEventListener("load", () => {
+            const overlay = document.getElementById("loadingOverlay");
+            if (overlay) {
+                setTimeout(() => {
+                    overlay.classList.add("hidden");
+                    setTimeout(() => overlay.remove(), 450);
+                }, 600);
+            }
+        });
+    </script>
+</body>
+</html>

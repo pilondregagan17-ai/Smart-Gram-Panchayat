@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Admin check helper
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.email.endsWith('@panchayat.gov.in') || 
+        exists(/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Complaints Rules: Citizens can submit and track, Admins have full access
+    match /complaints/{complaintId} {
+      allow create: if true;
+      allow read: if true; // Allowed for public tracking via ID
+      allow update, delete: if isAdmin();
+    }
+
+    // Certificate Requests Rules
+    match /certificate_requests/{requestId} {
+      allow create: if true;
+      allow read: if true; // Allowed for public tracking via ID
+      allow update, delete: if isAdmin();
+    }
+
+    // Notices Rules: Public can read, Admins can manage
+    match /notices/{noticeId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Activity Logs Rules: Only Admins can read/write logs
+    match /activity_logs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Admin Profiles
+    match /admins/{adminId} {
+      allow read, write: if request.auth != null && request.auth.uid == adminId;
+    }
+  }
+}

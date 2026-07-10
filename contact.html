@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>संपर्क करें - स्मार्ट ग्राम पंचायत</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    
+    <!-- Unified CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
+    
+    <!-- Firebase SDK (Compatibility Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+    <!-- Loading Screen Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div style="background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(10px); padding: 2.5rem 3.5rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15); text-align: center; box-shadow: var(--shadow-lg);">
+            <img src="images/logo.png" alt="Panchayat Logo" style="height: 70px; margin-bottom: 1.5rem; animation: pulse 2s infinite ease-in-out;">
+            <div style="width: 32px; height: 32px; border: 4px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s infinite linear; margin: 0 auto;"></div>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <header>
+        <div class="nav-container">
+            <div class="logo-section">
+                <a href="index.html">
+                    <img src="images/logo.png" class="site-logo" alt="Logo">
+                    <div class="logo-text">
+                        <h1 data-i18n="app_title">स्मार्ट ग्राम पंचायत</h1>
+                        <p data-i18n="app_subtitle">शिकायत एवं सेवा पोर्टल</p>
+                    </div>
+                </a>
+            </div>
+            <div class="nav-controls">
+                <!-- Language Selector -->
+                <div class="lang-selector-wrapper">
+                    <select class="lang-select">
+                        <option value="hi">हिन्दी</option>
+                        <option value="en">English</option>
+                        <option value="mr">मराठी</option>
+                    </select>
+                </div>
+                
+                <!-- Theme Toggle Button -->
+                <button class="btn-icon" id="themeToggleBtn" title="Toggle Theme">
+                    <i id="themeToggleIcon" data-lucide="moon"></i>
+                </button>
+                
+                <!-- Home Link -->
+                <a href="index.html" class="btn-icon" title="Home">
+                    <i data-lucide="home"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        
+        <div class="form-title-group" style="margin-bottom: 2rem;">
+            <h2 data-i18n="contact_title">ग्राम पंचायत से संपर्क करें</h2>
+            <p data-i18n="contact_desc">किसी भी आधिकारिक पूछताछ, प्रमाण पत्र प्रश्नों या आपातकालीन सहायता के लिए नीचे दिए गए पते और नंबर पर संपर्क करें।</p>
+        </div>
+
+        <div class="card form-card" style="padding: 2.5rem; margin-bottom: 2rem;">
+            <h3 style="border-bottom: 2px solid var(--primary-light); padding-bottom: 0.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="building" style="color: var(--primary);"></i>
+                <span id="homeGpName">-</span>
+            </h3>
+            
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <!-- Sarpanch -->
+                <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                    <div style="background-color: var(--primary-light); padding: 0.5rem; border-radius: var(--radius-sm); color: var(--primary);">
+                        <i data-lucide="user"></i>
+                    </div>
+                    <div>
+                        <strong data-i18n="label_sarpanch" style="color: var(--text-light); text-transform: uppercase; font-size: 0.75rem; display:block;">सरपंच का नाम</strong>
+                        <span id="homeGpSarpanch" style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary);">-</span>
+                    </div>
+                </div>
+
+                <!-- Address -->
+                <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                    <div style="background-color: var(--primary-light); padding: 0.5rem; border-radius: var(--radius-sm); color: var(--primary);">
+                        <i data-lucide="map-pin"></i>
+                    </div>
+                    <div>
+                        <strong data-i18n="label_address" style="color: var(--text-light); text-transform: uppercase; font-size: 0.75rem; display:block;">ग्राम का पता</strong>
+                        <span id="homeGpAddress" style="color: var(--text-secondary); font-size: 1rem;">-</span>
+                    </div>
+                </div>
+
+                <!-- Phone -->
+                <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                    <div style="background-color: var(--primary-light); padding: 0.5rem; border-radius: var(--radius-sm); color: var(--primary);">
+                        <i data-lucide="phone"></i>
+                    </div>
+                    <div>
+                        <strong data-i18n="label_phone" style="color: var(--text-light); text-transform: uppercase; font-size: 0.75rem; display:block;">संपर्क नंबर</strong>
+                        <a id="homeGpPhone" href="#" style="font-size: 1.1rem; font-weight: 600; color: var(--primary);">-</a>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                    <div style="background-color: var(--primary-light); padding: 0.5rem; border-radius: var(--radius-sm); color: var(--primary);">
+                        <i data-lucide="mail"></i>
+                    </div>
+                    <div>
+                        <strong data-i18n="label_email" style="color: var(--text-light); text-transform: uppercase; font-size: 0.75rem; display:block;">ईमेल आईडी</strong>
+                        <a id="homeGpEmail" href="#" style="font-size: 1rem; color: var(--primary);">-</a>
+                    </div>
+                </div>
+
+                <!-- Map Link Button -->
+                <div style="margin-top: 1rem; text-align: center;">
+                    <a id="homeGpMap" href="#" target="_blank" class="btn btn-accent btn-full" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <i data-lucide="navigation"></i>
+                        <span data-i18n="btn_view_map">Google Map पर पंचायत का स्थान देखें</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        <div class="footer-content" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+            <a href="index.html" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                <img src="images/logo.png" alt="GP Logo" style="height: 24px; width: auto; object-fit: contain;">
+            </a>
+            <p>&copy; 2026 <span data-i18n="app_title">स्मार्ट ग्राम पंचायत</span>. All Rights Reserved.</p>
+            <div style="margin-top: 0.5rem; display: flex; gap: 1rem; font-size: 0.9rem; justify-content: center;">
+                <a href="index.html" data-i18n="nav_home">मुख्य पृष्ठ</a> |
+                <a href="contact.html" style="font-weight: 600;" data-i18n="nav_contact">संपर्क करें (Contact)</a> |
+                <a href="settings.html" data-i18n="nav_settings">सेटिंग्स</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- App Scripts -->
+    <script src="js/translations.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Dismiss loading screen
+        window.addEventListener("load", () => {
+            const overlay = document.getElementById("loadingOverlay");
+            if (overlay) {
+                setTimeout(() => {
+                    overlay.classList.add("hidden");
+                    setTimeout(() => overlay.remove(), 450);
+                }, 600);
+            }
+        });
+    </script>
+</body>
+</html>

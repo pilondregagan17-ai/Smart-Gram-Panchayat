@@ -1,0 +1,25 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper to check if user has admin email extension
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email.endsWith('@panchayat.gov.in');
+    }
+
+    // Complaints attachments folder rules
+    match /complaints/{allPaths=**} {
+      allow read, write: if true; // Public can upload/view attachments
+    }
+
+    // Notices image attachment rules
+    match /notices/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Default catch-all
+    match /{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

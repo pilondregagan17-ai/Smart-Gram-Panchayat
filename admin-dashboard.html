@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="dash_title">प्रशासक नियंत्रण कक्ष - स्मार्ट ग्राम पंचायत</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    
+    <!-- Unified CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
+    
+    <!-- Firebase SDK (Compatibility Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+
+    <!-- Chart.js, SheetJS, jsPDF CDNs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="dashboard-body">
+
+    <!-- Loading Screen Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div style="background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(10px); padding: 2.5rem 3.5rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15); text-align: center; box-shadow: var(--shadow-lg);">
+            <img src="images/logo.png" alt="Panchayat Logo" style="height: 70px; margin-bottom: 1.5rem; animation: pulse 2s infinite ease-in-out;">
+            <div style="width: 32px; height: 32px; border: 4px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s infinite linear; margin: 0 auto;"></div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo-section">
+                <a href="index.html">
+                    <img src="images/logo.png" class="site-logo" alt="Logo">
+                    <div class="logo-text">
+                        <h1 data-i18n="app_title">स्मार्ट ग्राम पंचायत</h1>
+                        <span id="dashGpName" style="font-size: 0.8rem; color: var(--text-light); font-weight: 600;">प्रशासक डैशबोर्ड</span>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="nav-controls">
+                <!-- Language Selector -->
+                <div class="lang-selector-wrapper">
+                    <select class="lang-select">
+                        <option value="hi">हिन्दी</option>
+                        <option value="en">English</option>
+                        <option value="mr">मराठी</option>
+                    </select>
+                </div>
+                
+                <!-- Theme Toggle Button -->
+                <button class="btn-icon" id="themeToggleBtn" title="Toggle Theme">
+                    <i id="themeToggleIcon" data-lucide="moon"></i>
+                </button>
+                
+                <!-- User Account Badge -->
+                <div class="admin-badge" id="adminUserBadge" style="display: flex; align-items: center; gap: 0.5rem; background-color: var(--primary-light); padding: 0.35rem 0.75rem; border-radius: var(--radius-md);">
+                    <img id="adminBadgePic" src="images/default-user.png" alt="Avatar" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid var(--primary);">
+                    <i id="adminBadgeIcon" data-lucide="user" style="color: var(--primary); width: 16px; height: 16px;"></i>
+                    <span id="adminEmailDisplay" style="font-size: 0.85rem; font-weight: 600; color: var(--primary);">admin@panchayat.gov.in</span>
+                </div>
+
+                <!-- Logout Button -->
+                <button class="btn-icon" id="dashboardLogoutBtn" title="Logout" style="color: var(--danger);">
+                    <i data-lucide="log-out"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main style="max-width: 1280px; margin: 2rem auto; padding: 0 1rem; box-sizing: border-box;">
+        
+        <!-- Dashboard Header -->
+        <div class="form-title-group" style="text-align: left; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h2 data-i18n="dash_title" style="margin-bottom: 0.25rem;">प्रशासक नियंत्रण कक्ष (डैशबोर्ड)</h2>
+                <p data-i18n="dash_desc" style="color: var(--text-secondary);">ग्राम पंचायत की सभी शिकायतों, प्रमाणपत्रों और सूचनाओं का प्रबंधन करें।</p>
+            </div>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="stats-grid">
+            <!-- Total Complaints -->
+            <div class="stat-card">
+                <div class="stat-card-icon all"><i data-lucide="folder"></i></div>
+                <div class="stat-card-info">
+                    <h4 data-i18n="stat_total">कुल शिकायतें</h4>
+                    <p id="statTotal">0</p>
+                </div>
+            </div>
+            <!-- Pending -->
+            <div class="stat-card">
+                <div class="stat-card-icon pending"><i data-lucide="clock"></i></div>
+                <div class="stat-card-info">
+                    <h4 data-i18n="stat_pending">लंबित शिकायतें</h4>
+                    <p id="statPending">0</p>
+                </div>
+            </div>
+            <!-- In Progress -->
+            <div class="stat-card">
+                <div class="stat-card-icon progress"><i data-lucide="loader"></i></div>
+                <div class="stat-card-info">
+                    <h4 data-i18n="stat_progress">प्रगति पर</h4>
+                    <p id="statProgress">0</p>
+                </div>
+            </div>
+            <!-- Completed -->
+            <div class="stat-card">
+                <div class="stat-card-icon completed"><i data-lucide="check-circle"></i></div>
+                <div class="stat-card-info">
+                    <h4 data-i18n="stat_completed">पूर्ण शिकायतें</h4>
+                    <p id="statCompleted">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Controls Header -->
+        <div class="tabs-header" style="margin-top: 2rem;">
+            <button class="tab-btn active" data-tab="overviewTab">📊 अवलोकन (Overview)</button>
+            <button class="tab-btn" data-tab="complaintsTab" data-i18n="tab_complaints">शिकायतें प्रबंधन</button>
+            <button class="tab-btn" data-tab="certificatesTab" data-i18n="tab_certificates">प्रमाणपत्र अनुरोध</button>
+            <button class="tab-btn" data-tab="noticesTab">📢 सूचना पटल (Notices)</button>
+            <button class="tab-btn" data-tab="logsTab">📝 ऑडिट लॉग्स (Logs)</button>
+            <button class="tab-btn" data-tab="adminSettingsTab">⚙️ प्रणाली सेटिंग्स (Settings)</button>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 0: OVERVIEW & ANALYTICS -->
+        <!-- ========================================== -->
+        <div class="tab-content active" id="overviewTab">
+            <!-- Weekly Statistics & Alerts -->
+            <div style="background-color: var(--primary-light); color: var(--primary); padding: 1.25rem; border-radius: var(--radius-md); border-left: 5px solid var(--primary); margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h4 style="margin: 0 0 0.25rem 0; font-size: 1.1rem; font-weight: 700;">📈 साप्ताहिक सांख्यिकी समीक्षा (Weekly Review)</h4>
+                    <p style="margin: 0; font-size: 0.9rem;" id="weeklyReviewText">इस सप्ताह कुल 0 शिकायतें दर्ज की गईं। लंबित दर 0% है।</p>
+                </div>
+                <div style="background-color: var(--bg-card); padding: 0.5rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border); text-align: center;">
+                    <span style="font-size: 0.75rem; color: var(--text-light); text-transform: uppercase; font-weight: 700; display: block;">आज की शिकायतें</span>
+                    <strong style="font-size: 1.5rem; color: var(--primary);" id="statToday">0</strong>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                <div class="card" style="padding: 1.5rem; min-height: 320px;">
+                    <h3 style="border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-top:0; margin-bottom: 1rem; font-size: 1.1rem;"><i data-lucide="bar-chart-3"></i> मासिक शिकायत चार्ट (Monthly Distribution)</h3>
+                    <div style="position: relative; height: 240px; width: 100%;">
+                        <canvas id="monthlyChart"></canvas>
+                    </div>
+                </div>
+                <div class="card" style="padding: 1.5rem; min-height: 320px;">
+                    <h3 style="border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-top:0; margin-bottom: 1rem; font-size: 1.1rem;"><i data-lucide="pie-chart"></i> श्रेणी वार शिकायतें (Category Breakdown)</h3>
+                    <div style="position: relative; height: 240px; width: 100%; display: flex; justify-content: center;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Lists Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem;">
+                <!-- Recent Complaints -->
+                <div class="card" style="padding: 1.5rem;">
+                    <h3 style="border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-top:0; margin-bottom: 1rem; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center;">
+                        <span>📋 हाल की शिकायतें (Recent)</span>
+                        <a href="#" onclick="switchTab('complaintsTab')" style="font-size:0.8rem; color:var(--primary); font-weight:600;">सभी देखें</a>
+                    </h3>
+                    <div id="recentComplaintsList" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <p style="text-align: center; color: var(--text-light); padding: 1rem;">कोई शिकायत रिकॉर्ड नहीं मिला।</p>
+                    </div>
+                </div>
+
+                <!-- Recent Certificates -->
+                <div class="card" style="padding: 1.5rem;">
+                    <h3 style="border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-top:0; margin-bottom: 1rem; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center;">
+                        <span>📜 हाल के प्रमाणपत्र आवेदन</span>
+                        <a href="#" onclick="switchTab('certificatesTab')" style="font-size:0.8rem; color:var(--primary); font-weight:600;">सभी देखें</a>
+                    </h3>
+                    <div id="recentCertificatesList" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <p style="text-align: center; color: var(--text-light); padding: 1rem;">कोई प्रमाणपत्र अनुरोध नहीं मिला।</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 1: COMPLAINTS MANAGEMENT -->
+        <!-- ========================================== -->
+        <div class="tab-content" id="complaintsTab">
+            <!-- Search & Filters -->
+            <div class="filter-panel">
+                <!-- Search Box -->
+                <div class="search-box">
+                    <i data-lucide="search" class="search-box-icon" style="width: 18px; height: 18px;"></i>
+                    <input type="text" id="searchInput" class="input-control" data-i18n-placeholder="placeholder_search" placeholder="खोजें...">
+                </div>
+                
+                <!-- Status Filters & Export Actions -->
+                <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                    <div class="filter-buttons">
+                        <button class="btn btn-primary btn-sm" data-filter="All" data-i18n="filter_all">सभी</button>
+                        <button class="btn btn-outline btn-sm" data-filter="Pending" data-i18n="status_pending">लंबित</button>
+                        <button class="btn btn-outline btn-sm" data-filter="In Progress" data-i18n="status_progress">प्रगति पर</button>
+                        <button class="btn btn-outline btn-sm" data-filter="Completed" data-i18n="status_completed">पूर्ण</button>
+                    </div>
+                    
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button onclick="exportData('Excel')" class="btn btn-outline btn-sm" title="Export Excel" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                            <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #10B981;"></i> 
+                            <span>Excel</span>
+                        </button>
+                        <button onclick="exportData('CSV')" class="btn btn-outline btn-sm" title="Export CSV" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                            <i data-lucide="file" style="width: 15px; height: 15px; color: var(--primary);"></i> 
+                            <span>CSV</span>
+                        </button>
+                        <button onclick="exportData('PDF')" class="btn btn-outline btn-sm" title="Export PDF" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                            <i data-lucide="file-text" style="width: 15px; height: 15px; color: #EF4444;"></i> 
+                            <span>PDF Report</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Complaints Table -->
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>आईडी / तिथि (ID / Date)</th>
+                            <th>प्राथमिकता (Priority)</th>
+                            <th data-i18n="col_citizen">नागरिक विवरण</th>
+                            <th data-i18n="col_category">श्रेणी</th>
+                            <th data-i18n="col_desc">विवरण</th>
+                            <th>स्थान (Map)</th>
+                            <th data-i18n="col_status">स्थिति</th>
+                            <th data-i18n="col_actions">कार्रवाई</th>
+                        </tr>
+                    </thead>
+                    <tbody id="complaintsTableBody">
+                        <!-- Dynamic rows here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: CERTIFICATE REQUESTS -->
+        <!-- ========================================== -->
+        <div class="tab-content" id="certificatesTab">
+            <!-- Certificates Table -->
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-i18n="col_id">अनुरोध आईडी / तिथि</th>
+                            <th data-i18n="col_citizen">नागरिक विवरण</th>
+                            <th data-i18n="label_cert_type">प्रमाणपत्र का प्रकार</th>
+                            <th data-i18n="label_reason">कारण</th>
+                            <th data-i18n="col_status">स्थिति</th>
+                            <th style="min-width: 250px;">कार्रवाई (Secretary Actions)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="certificatesTableBody">
+                        <!-- Dynamic rows here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: NOTICE BOARD MANAGER -->
+        <!-- ========================================== -->
+        <div class="tab-content" id="noticesTab">
+            <div class="stats-grid" style="grid-template-columns: 1fr 2fr; gap: 1.5rem; align-items: start;">
+                <!-- Add Notice Card -->
+                <div class="card" style="padding: 1.5rem;">
+                    <h3 style="border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; margin-top:0; margin-bottom: 1rem;"><i data-lucide="megaphone" style="color:var(--accent);"></i> नई सूचना जारी करें</h3>
+                    <form id="noticePublishForm">
+                        <div class="form-group">
+                            <label>सूचना का शीर्षक (Notice Title)</label>
+                            <input type="text" id="noticeTitleInput" class="input-control" required placeholder="जैसे: जलापूर्ति बंद सूचना">
+                        </div>
+                        <div class="form-group">
+                            <label>श्रेणी (Type)</label>
+                            <select id="noticeTypeSelect" class="input-control" required>
+                                <option value="General">📢 सामान्य (General)</option>
+                                <option value="Water Supply">💧 जल आपूर्ति (Water)</option>
+                                <option value="Gram Sabha">🏛️ ग्राम सभा (Sabha)</option>
+                                <option value="Vaccination">💉 टीकाकरण (Vaccination)</option>
+                                <option value="Electricity">⚡ बिजली बंद (Power)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>विवरण (Content)</label>
+                            <textarea id="noticeContentInput" class="input-control" required style="min-height: 120px;" placeholder="विवरण यहाँ लिखें..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-accent btn-full"><i data-lucide="send"></i> सूचना प्रकाशित करें</button>
+                    </form>
+                </div>
+
+                <!-- Notices List Card -->
+                <div class="card" style="padding: 1.5rem;">
+                    <h3 style="border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-top:0; margin-bottom: 1rem;"><i data-lucide="list"></i> सक्रिय सूचनाएं (Active Announcements)</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>तिथि / श्रेणी</th>
+                                    <th>शीर्षक</th>
+                                    <th>विवरण</th>
+                                    <th>कार्रवाई</th>
+                                </tr>
+                            </thead>
+                            <tbody id="noticesTableBody">
+                                <!-- Annoucements will load dynamically here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: AUDIT ACTIVITY LOGS -->
+        <!-- ========================================== -->
+        <div class="tab-content" id="logsTab">
+            <div class="card" style="padding: 1.5rem;">
+                <h3 style="border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-top:0; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>📝 ऑडिट लॉग गतिविधि सूची (System Activity Logs)</span>
+                    <button class="btn btn-outline btn-sm" onclick="loadActivityLogs()" style="display:inline-flex;align-items:center;gap:0.25rem;"><i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Refresh</button>
+                </h3>
+                <p style="font-size:0.8rem; color: var(--text-light); margin-bottom: 1.25rem;">ऑडिट ट्रेल: प्रत्येक प्रशासनिक कार्रवाई (जैसे लॉगिन, प्रमाणपत्र स्वीकृत, शिकायतें हटाना) का विवरण यहां ट्रैक होता है।</p>
+                
+                <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>दिनांक और समय</th>
+                                <th>कार्रवाई (Action)</th>
+                                <th>विवरण (Details)</th>
+                                <th>प्रशासक (Admin)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logsTableBody">
+                            <!-- Logs will load here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 5: SYSTEM SETTINGS -->
+        <!-- ========================================== -->
+        <div class="tab-content" id="adminSettingsTab">
+            <!-- Alert banner -->
+            <div class="alert alert-success" id="settingsAlert" style="display: none; margin-bottom: 1.5rem;">
+                <i data-lucide="check-circle"></i>
+                <span id="alertMessage">सेटिंग्स सफलतापूर्वक सहेज ली गईं!</span>
+            </div>
+
+            <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; align-items: start;">
+                
+                <!-- CARD 1: GRAM PANCHAYAT PROFILE -->
+                <div class="card" style="padding: 1.5rem;">
+                    <h3 style="border-bottom: 2px solid var(--primary-light); padding-bottom: 0.5rem; margin-top:0; margin-bottom: 1rem;"><i data-lucide="building"></i> 🏛️ Gram Panchayat Profile</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">मुख्य और संपर्क पृष्ठ पर यह जानकारी स्वतः अपडेट होगी।</p>
+                    
+                    <form id="panchayatForm">
+                        <div class="form-group">
+                            <label>🏛️ Gram Panchayat Name</label>
+                            <input type="text" id="gpName" class="input-control" required placeholder="ग्राम पंचायत बोरुजवाडा">
+                        </div>
+                        <div class="form-group">
+                            <label>📍 Village Address</label>
+                            <input type="text" id="gpAddress" class="input-control" required placeholder="बोरुजवाडा, मध्य प्रदेश">
+                        </div>
+                        <div class="form-group">
+                            <label>👨🌾 Sarpanch Name</label>
+                            <input type="text" id="gpSarpanch" class="input-control" required placeholder="श्री गगन पिलौंद्रे">
+                        </div>
+                        <div class="form-group">
+                            <label>📞 Contact Number</label>
+                            <input type="tel" id="gpPhone" class="input-control" required placeholder="+91 9876543210">
+                        </div>
+                        <div class="form-group">
+                            <label>📧 Email Address</label>
+                            <input type="email" id="gpEmail" class="input-control" required placeholder="info@borujwada.gp.gov.in">
+                        </div>
+                        <div class="form-group">
+                            <label>🗺️ Google Map Link</label>
+                            <input type="url" id="gpMap" class="input-control" required placeholder="https://maps.google.com/...">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full"><i data-lucide="save"></i> सुरक्षित करें</button>
+                    </form>
+                </div>
+
+                <!-- CARD 2: ADMIN PROFILE & PASS -->
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <!-- ADMIN ACCOUNT & AVATAR -->
+                    <div class="card" style="padding: 1.5rem;">
+                        <h3 style="border-bottom: 2px solid var(--primary-light); padding-bottom: 0.5rem; margin-top:0; margin-bottom: 1rem;"><i data-lucide="user"></i> 👤 Admin Account Settings</h3>
+                        
+                        <!-- Upload Avatar -->
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+                            <div style="position: relative; width: 64px; height: 64px;">
+                                <img id="adminProfilePicPreview" src="images/default-user.png" alt="Profile" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.85rem; font-weight: 700; display: block; margin-bottom: 4px;">प्रोफ़ाइल चित्र (Profile Photo)</label>
+                                <input type="file" id="profilePicInput" accept="image/*" style="display: none;" onchange="uploadAdminProfilePic(this)">
+                                <button type="button" onclick="document.getElementById('profilePicInput').click()" class="btn btn-outline btn-sm">फ़ोटो अपलोड करें</button>
+                            </div>
+                        </div>
+
+                        <!-- Change Email -->
+                        <form id="changeEmailForm" style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border);">
+                            <div class="form-group">
+                                <label>📧 Change Email Address</label>
+                                <input type="email" id="newAdminEmail" class="input-control" required placeholder="newadmin@panchayat.gov.in">
+                            </div>
+                            <button type="submit" class="btn btn-outline btn-sm btn-full">Email अपडेट करें</button>
+                        </form>
+                        
+                        <!-- Change Password -->
+                        <form id="changePasswordForm">
+                            <div class="form-group">
+                                <label>🔒 New Password</label>
+                                <input type="password" id="newAdminPassword" class="input-control" required placeholder="••••••••">
+                            </div>
+                            <div class="form-group">
+                                <label>Confirm Password</label>
+                                <input type="password" id="confirmAdminPassword" class="input-control" required placeholder="••••••••">
+                            </div>
+                            <button type="submit" class="btn btn-outline btn-sm btn-full">Password अपडेट करें</button>
+                        </form>
+
+                        <!-- Add Secondary Admin Account -->
+                        <form id="registerAdminForm" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                            <strong style="font-size: 0.95rem; display: block; margin-bottom: 0.75rem;"><i data-lucide="user-plus" style="width:16px;height:16px;vertical-align:middle;margin-right:4px;"></i> नया एडमिन पंजीकृत करें (Register New Admin)</strong>
+                            <div class="form-group">
+                                <label>📧 New Admin Email</label>
+                                <input type="email" id="regAdminEmail" class="input-control" required placeholder="new.admin@panchayat.gov.in">
+                            </div>
+                            <div class="form-group">
+                                <label>🔒 Password</label>
+                                <input type="password" id="regAdminPassword" class="input-control" required placeholder="••••••••">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm btn-full">एडमिन जोड़ें (Add Admin)</button>
+                        </form>
+                    </div>
+
+                    <!-- CARD 3: SECURITY CONTROLS -->
+                    <div class="card" style="padding: 1.5rem;">
+                        <h3 style="border-bottom: 2px solid var(--primary-light); padding-bottom: 0.5rem; margin-top:0; margin-bottom: 1rem;"><i data-lucide="shield"></i> 🔒 Security & Display</h3>
+                        
+                        <form id="securityForm">
+                            <div class="form-group">
+                                <label>🔄 Auto Logout Session</label>
+                                <select id="autoLogout" class="input-control">
+                                    <option value="15">15 Minutes</option>
+                                    <option value="30">30 Minutes</option>
+                                    <option value="60">60 Minutes</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>📋 प्रति पृष्ठ पंक्तियाँ (Rows per Page)</label>
+                                <select id="rowsPerPageSelect" class="input-control">
+                                    <option value="10">10 Rows</option>
+                                    <option value="25">25 Rows</option>
+                                    <option value="50">50 Rows</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-outline btn-sm btn-full"><i data-lucide="save"></i> सुरक्षित करें</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- CARD 4: NOTIFICATIONS & DATA -->
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <!-- NOTIFICATION SETTINGS -->
+                    <div class="card" style="padding: 1.5rem;">
+                        <h3 style="border-bottom: 2px solid var(--primary-light); padding-bottom: 0.5rem; margin-top:0; margin-bottom: 1rem;"><i data-lucide="bell"></i> ⚙️ Notification Settings</h3>
+                        <div class="form-group">
+                            <label>SMS Gateway Provider</label>
+                            <select id="smsProviderSelect" class="input-control" onchange="toggleSmsProviderFields()">
+                                <option value="Disabled">Disabled / Simulator Mode</option>
+                                <option value="Fast2SMS">Fast2SMS (India)</option>
+                                <option value="Twilio">Twilio Gateway</option>
+                            </select>
+                        </div>
+                        <div id="smsCredentialsBlock" style="display:none;">
+                            <div class="form-group">
+                                <label id="smsApiKeyLabel">API Authorization Key</label>
+                                <input type="password" id="smsApiKeyInput" class="input-control" placeholder="API Key / Auth Token">
+                            </div>
+                            <div class="form-group" id="smsSenderGroup">
+                                <label id="smsSenderLabel">Sender ID / Account SID</label>
+                                <input type="text" id="smsSenderInput" class="input-control" placeholder="Sender ID or Twilio Account SID">
+                            </div>
+                            <div class="form-group" id="smsSenderNumGroup" style="display:none;">
+                                <label>Twilio Phone Number (From)</label>
+                                <input type="text" id="smsSenderNumInput" class="input-control" placeholder="e.g. +14155552671">
+                            </div>
+                        </div>
+                        <button type="button" onclick="saveNotificationSettings()" class="btn btn-outline btn-sm btn-full"><i data-lucide="save"></i> सुरक्षित करें</button>
+                    </div>
+
+                    <!-- DATA MANAGEMENT -->
+                    <div class="card" style="padding: 1.5rem;">
+                        <h3 style="border-bottom: 2px solid var(--primary-light); padding-bottom: 0.5rem; margin-top:0; margin-bottom: 1rem;"><i data-lucide="database"></i> 💾 Data Management</h3>
+                        
+                        <!-- Backup -->
+                        <div style="margin-bottom: 1rem;">
+                            <strong style="font-size: 0.9rem; display:block; margin-bottom: 0.25rem;">Backup Database (JSON)</strong>
+                            <button onclick="backupPanchayatData()" class="btn btn-outline btn-sm btn-full"><i data-lucide="download"></i> डेटा बैकअप डाउनलोड करें</button>
+                        </div>
+                        
+                        <!-- Import -->
+                        <div style="margin-bottom: 1rem;">
+                            <strong style="font-size: 0.9rem; display:block; margin-bottom: 0.25rem;">Restore Backup (JSON)</strong>
+                            <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="importPanchayatData(this)">
+                            <button onclick="document.getElementById('importFileInput').click()" class="btn btn-outline btn-sm btn-full"><i data-lucide="upload"></i> बैकअप फ़ाइल अपलोड करें</button>
+                        </div>
+
+                        <!-- Reset Cache -->
+                        <div>
+                            <strong style="font-size: 0.9rem; display:block; margin-bottom: 0.25rem;">Reset Cache</strong>
+                            <button onclick="clearSystemCache()" class="btn btn-danger btn-sm btn-full"><i data-lucide="trash-2"></i> कैश साफ़ करें (Reset)</button>
+                        </div>
+                    </div>
+
+                    <!-- APP INFO -->
+                    <div class="card" style="padding: 1.25rem; font-size: 0.85rem; line-height: 1.6; color: var(--text-secondary);">
+                        <strong style="font-size:0.9rem; display:block; color:var(--text-primary); margin-bottom:0.5rem;"><i data-lucide="info" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"></i> System Information</strong>
+                        App Version: v1.1-production<br>
+                        Firebase: <span id="firebaseStatusText" style="font-weight:700; color:var(--primary);">Checking...</span><br>
+                        Developer: Gagan Pilondre<br>
+                        Organization: Gram Panchayat Borujwada
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Secretary Response Remarks Dialog Modal -->
+    <div id="remarksModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 15000; padding: 1rem; box-sizing: border-box;">
+        <div class="card" style="width: 100%; max-width: 480px; padding: 1.5rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);">
+            <h3 id="modalRemarksHeader" style="margin-top:0; border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 1rem; color:var(--text-primary);">टिप्पणी दर्ज करें (Secretary Remarks)</h3>
+            <p id="modalRemarksDesc" style="font-size:0.85rem; color:var(--text-secondary); margin-bottom: 1rem;">कृपया नागरिक को सूचित करने के लिए आवश्यक विवरण या अस्वीकृति का कारण लिखें।</p>
+            
+            <input type="hidden" id="modalRemarksCertId">
+            <input type="hidden" id="modalRemarksActionType">
+            
+            <div class="form-group">
+                <label>विवरण / संदेश (Message)</label>
+                <textarea id="modalRemarksText" class="input-control" style="min-height: 100px;" placeholder="जैसे: कृपया आधार कार्ड और आय प्रमाण पत्र की प्रति पंचायत भवन में जमा करें।"></textarea>
+            </div>
+            
+            <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-outline" onclick="closeRemarksModal()">रद्द करें (Cancel)</button>
+                <button type="button" class="btn btn-accent" onclick="submitRemarksModalAction()">सहेजें (Save Decision)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Attachment Preview Lightbox Modal -->
+    <div id="photoLightboxModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 20000; padding: 1.5rem; box-sizing: border-box;">
+        <div style="position: relative; max-width: 90%; max-height: 90%; text-align: center;">
+            <button type="button" onclick="closePhotoLightbox()" style="position: absolute; top: -40px; right: 0; background: none; border: none; color: white; font-size: 2rem; cursor: pointer;" title="Close">&times;</button>
+            <img id="lightboxImage" src="" alt="Preview Attachment" style="max-width: 100%; max-height: 80vh; border-radius: var(--radius-md); box-shadow: 0 10px 30px rgba(0,0,0,0.5); object-fit: contain;">
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+            <a href="index.html" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                <img src="images/logo.png" alt="GP Logo" style="height: 24px; width: auto; object-fit: contain;">
+            </a>
+            <p>&copy; 2026 <span data-i18n="app_title">स्मार्ट ग्राम पंचायत</span>. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- App Scripts -->
+    <script src="js/translations.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/admin.js"></script>
+    <script>
+        // Dismiss loading screen when dashboard loads
+        window.addEventListener("load", () => {
+            const overlay = document.getElementById("loadingOverlay");
+            if (overlay) {
+                setTimeout(() => {
+                    overlay.classList.add("hidden");
+                    setTimeout(() => overlay.remove(), 450);
+                }, 600);
+            }
+        });
+    </script>
+</body>
+</html>

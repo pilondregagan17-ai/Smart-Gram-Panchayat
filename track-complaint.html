@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="track_title">शिकायत ट्रैक करें - स्मार्ट ग्राम पंचायत</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    
+    <!-- Unified CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
+    
+    <!-- Firebase SDK (Compatibility Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+    <!-- Loading Screen Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div style="background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(10px); padding: 2.5rem 3.5rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15); text-align: center; box-shadow: var(--shadow-lg);">
+            <img src="images/logo.png" alt="Panchayat Logo" style="height: 70px; margin-bottom: 1.5rem; animation: pulse 2s infinite ease-in-out;">
+            <div style="width: 32px; height: 32px; border: 4px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s infinite linear; margin: 0 auto;"></div>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <header>
+        <div class="nav-container">
+            <div class="logo-section">
+                <a href="index.html">
+                    <img src="images/logo.png" class="site-logo" alt="Logo">
+                    <div class="logo-text">
+                        <h1 data-i18n="app_title">स्मार्ट ग्राम पंचायत</h1>
+                        <p data-i18n="app_subtitle">शिकायत एवं सेवा पोर्टल</p>
+                    </div>
+                </a>
+            </div>
+            <div class="nav-controls">
+                <div class="lang-selector-wrapper">
+                    <select class="lang-select">
+                        <option value="hi">हिन्दी</option>
+                        <option value="en">English</option>
+                        <option value="mr">मराठी</option>
+                    </select>
+                </div>
+                <button class="btn-icon" id="themeToggleBtn" title="Toggle Theme">
+                    <i id="themeToggleIcon" data-lucide="moon"></i>
+                </button>
+                <a href="settings.html" class="btn-icon" title="Settings">
+                    <i data-lucide="settings"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        
+        <!-- Tab Selector for Citizen tracking -->
+        <div class="card form-card" style="margin-bottom: 1.5rem; padding: 1rem;">
+            <div style="display: flex; gap: 0.5rem; width: 100%;">
+                <button type="button" id="trackComplaintsTabBtn" class="btn btn-primary" style="flex: 1; border-radius: var(--radius-md); font-size: 0.9rem; padding: 0.6rem 1rem;">📋 शिकायत ट्रैक करें</button>
+                <button type="button" id="trackCertificatesTabBtn" class="btn btn-outline" style="flex: 1; border-radius: var(--radius-md); font-size: 0.9rem; padding: 0.6rem 1rem;">📜 प्रमाणपत्र ट्रैक करें</button>
+            </div>
+        </div>
+
+        <!-- Search Card -->
+        <div class="card form-card">
+            <div class="form-title-group">
+                <h2 id="trackTitle" data-i18n="track_title">अपनी शिकायत की स्थिति ट्रैक करें</h2>
+                <p id="trackDesc" data-i18n="track_desc">शिकायत दर्ज करते समय प्राप्त हुई विशिष्ट ट्रैकिंग आईडी दर्ज करके अपनी शिकायत की वर्तमान प्रगति देखें।</p>
+            </div>
+            
+            <form id="trackForm">
+                <div class="form-group">
+                    <label for="trackingIdInput" id="trackLabel" data-i18n="label_tracking_id">ट्रैकिंग आईडी दर्ज करें</label>
+                    <input type="text" id="trackingIdInput" class="input-control" data-i18n-placeholder="placeholder_tracking_id" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">
+                    <i data-lucide="search"></i>
+                    <span data-i18n="btn_track">ट्रैक करें</span>
+                </button>
+            </form>
+        </div>
+        
+        <!-- Error Alert (Initially Hidden) -->
+        <div class="alert alert-danger form-card" id="errorAlert" style="display: none; margin-top: 1.5rem;">
+            <i data-lucide="alert-triangle"></i>
+            <span id="errorText" data-i18n="track_error">अवैध ट्रैकिंग आईडी। कृपया सही आईडी दर्ज करें।</span>
+        </div>
+        
+        <!-- Tracking Results Card (Initially Hidden) -->
+        <div class="card form-card tracking-result-box" id="trackingResult">
+            <h3 id="resTitleHeader" data-i18n="track_result_title" style="border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; margin-bottom: 1rem;">शिकायत विवरण</h3>
+            
+            <!-- Stepper -->
+            <div class="stepper" id="resStepper">
+                <div class="step" id="stepPending">
+                    <div class="step-dot">1</div>
+                    <div class="step-label" id="stepLabel1" data-i18n="status_pending">लंबित</div>
+                </div>
+                <div class="step" id="stepProgress">
+                    <div class="step-dot">2</div>
+                    <div class="step-label" id="stepLabel2" data-i18n="status_progress">प्रगति पर</div>
+                </div>
+                <div class="step" id="stepCompleted">
+                    <div class="step-dot">3</div>
+                    <div class="step-label" id="stepLabel3" data-i18n="status_completed">पूर्ण</div>
+                </div>
+            </div>
+            
+            <!-- Details List -->
+            <div class="details-list">
+                <div class="detail-item">
+                    <p id="resIdLabel" data-i18n="col_id">ट्रैकिंग आईडी</p>
+                    <p id="resId">-</p>
+                </div>
+                <div class="detail-item">
+                    <p id="resNameLabel" data-i18n="details_name">शिकायतकर्ता का नाम</p>
+                    <p id="resName">-</p>
+                </div>
+                <div class="detail-item" id="resMobileRow" style="display: none;">
+                    <p>मोबाइल नंबर (Mobile Number)</p>
+                    <p id="resMobile">-</p>
+                </div>
+                <div class="detail-item">
+                    <p id="resCategoryLabel" data-i18n="details_category">श्रेणी</p>
+                    <p id="resCategory">-</p>
+                </div>
+                <div class="detail-item">
+                    <p id="resStatusLabel" data-i18n="details_status">वर्तमान स्थिति</p>
+                    <p id="resStatus">-</p>
+                </div>
+                <div class="detail-item" id="resPriorityRow">
+                    <p>प्राथमिकता (Priority)</p>
+                    <p id="resPriority">-</p>
+                </div>
+                <div class="detail-item" id="resLocationRow" style="display: none;">
+                    <p>जीपीएस स्थान (Location)</p>
+                    <p><a id="resLocationLink" href="#" target="_blank" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 0.25rem;"><i data-lucide="navigation" style="width:14px;height:14px;"></i> Google Map पर देखें</a></p>
+                </div>
+                <div class="detail-item">
+                    <p id="resDateLabel" data-i18n="date_created">दर्ज करने की तिथि</p>
+                    <p id="resDate">-</p>
+                </div>
+            </div>
+            
+            <!-- Secretary Comments (NEW) -->
+            <div id="resSecretaryNotesRow" style="margin-top: 1.5rem; display: none; padding: 1.25rem; border: 1px solid var(--accent); border-radius: var(--radius-md); background-color: rgba(249, 115, 22, 0.05);">
+                <h4 style="color: var(--accent); font-size: 0.95rem; margin-top:0; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.25rem;"><i data-lucide="message-square" style="width:16px;height:16px;"></i> सचिव की टिप्पणी (Message from Secretary)</h4>
+                <p id="resSecretaryNotes" style="margin: 0; font-size: 0.95rem; color: var(--text-primary); font-weight: 600; line-height: 1.5;"></p>
+            </div>
+
+            <!-- Description -->
+            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                <h4 id="resDescHeader" data-i18n="label_desc" style="font-size: 0.9rem; color: var(--text-light); text-transform: uppercase; margin-bottom: 0.5rem;">शिकायत का विवरण</h4>
+                <p id="resDescription" style="color: var(--text-primary); font-size: 1rem; line-height: 1.6; background-color: var(--bg-primary); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border);"></p>
+            </div>
+            
+            <!-- Photo Upload Attachment -->
+            <div id="resPhotoWrapper" style="margin-top: 1.5rem; display: none;">
+                <h4 data-i18n="label_photo" style="font-size: 0.9rem; color: var(--text-light); text-transform: uppercase; margin-bottom: 0.5rem;">अपलोड किया गया फोटो</h4>
+                <img id="resPhoto" src="" alt="Complaint Photo" style="max-width: 100%; max-height: 300px; border-radius: var(--radius-md); border: 1px solid var(--border); object-fit: contain;">
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+            <a href="index.html" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                <img src="images/logo.png" alt="GP Logo" style="height: 24px; width: auto; object-fit: contain;">
+            </a>
+            <p>&copy; 2026 <span data-i18n="app_title">स्मार्ट ग्राम पंचायत</span>. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- App Scripts -->
+    <script src="js/translations.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/track.js"></script>
+    <script>
+        // Dismiss loading screen
+        window.addEventListener("load", () => {
+            const overlay = document.getElementById("loadingOverlay");
+            if (overlay) {
+                setTimeout(() => {
+                    overlay.classList.add("hidden");
+                    setTimeout(() => overlay.remove(), 450);
+                }, 600);
+            }
+        });
+    </script>
+</body>
+</html>

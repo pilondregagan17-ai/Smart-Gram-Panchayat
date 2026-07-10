@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="admin_login_title">प्रशासक लॉगिन - स्मार्ट ग्राम पंचायत</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    
+    <!-- Unified CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
+    
+    <!-- Firebase SDK (Compatibility Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="login-page-body">
+
+    <!-- Header Section -->
+    <header>
+        <div class="nav-container">
+            <div class="logo-section">
+                <a href="index.html">
+                    <img src="images/logo.png" class="site-logo" alt="Logo">
+                    <div class="logo-text">
+                        <h1 data-i18n="app_title">स्मार्ट ग्राम पंचायत</h1>
+                        <p data-i18n="app_subtitle">शिकायत एवं सेवा पोर्टल</p>
+                    </div>
+                </a>
+            </div>
+            <div class="nav-controls">
+                <div class="lang-selector-wrapper">
+                    <select class="lang-select">
+                        <option value="hi">हिन्दी</option>
+                        <option value="en">English</option>
+                        <option value="mr">मराठी</option>
+                    </select>
+                </div>
+                <button class="btn-icon" id="themeToggleBtn" title="Toggle Theme">
+                    <i id="themeToggleIcon" data-lucide="moon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        
+        <div class="card form-card">
+            <!-- Center Brand Logo -->
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <a href="index.html">
+                    <img src="images/logo.png" alt="Panchayat Logo" style="height: 64px; width: auto; object-fit: contain;">
+                </a>
+            </div>
+            
+            <div class="form-title-group">
+                <h2 data-i18n="admin_login_title">प्रशासक लॉगिन</h2>
+                <p data-i18n="admin_login_desc">ग्राम पंचायत शिकायत प्रबंधन डैशबोर्ड तक पहुंचने के लिए लॉगिन करें।</p>
+            </div>
+
+            <!-- Error Notification -->
+            <div class="alert alert-danger" id="authError" style="display: none; margin-bottom: 1.5rem;">
+                <i data-lucide="alert-circle"></i>
+                <span id="errorText">Error</span>
+            </div>
+            
+            <form id="loginForm">
+                <!-- Email -->
+                <div class="form-group">
+                    <label for="emailInput" data-i18n="label_email">ईमेल आईडी</label>
+                    <input type="email" id="emailInput" class="input-control" data-i18n-placeholder="placeholder_email" required>
+                </div>
+                
+                <!-- Password -->
+                <div class="form-group">
+                    <label for="passwordInput" data-i18n="label_password">पासवर्ड</label>
+                    <input type="password" id="passwordInput" class="input-control" data-i18n-placeholder="placeholder_password" required>
+                </div>
+                
+                <!-- Submit -->
+                <button type="submit" class="btn btn-primary btn-full" style="margin-top: 1.5rem;">
+                    <i data-lucide="log-in"></i>
+                    <span data-i18n="btn_login">लॉगिन करें</span>
+                </button>
+            </form>
+            
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+            <a href="index.html" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                <img src="images/logo.png" alt="GP Logo" style="height: 24px; width: auto; object-fit: contain;">
+            </a>
+            <p>&copy; 2026 <span data-i18n="app_title">स्मार्ट ग्राम पंचायत</span>. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- App Scripts -->
+    <script src="js/translations.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>
